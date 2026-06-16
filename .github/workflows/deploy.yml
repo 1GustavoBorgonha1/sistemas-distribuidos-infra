@@ -1,0 +1,81 @@
+name: Deploy App
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Tag da imagem do backend a implantar (ex: latest, ou o SHA)"
+        required: true
+        default: "latest"
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  TF_VERSION: "1.9.0"
+  AWS_REGION: us-east-1
+
+defaults:
+  run:
+    working-directory: infra
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_INFRA }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Read infra outputs
+        id: tf
+        run: |
+          echo "app_name=$(terraform output -raw app_name)" >> "$GITHUB_OUTPUT"
+          echo "namespace=$(terraform output -raw k8s_namespace)" >> "$GITHUB_OUTPUT"
+          echo "repo=$(terraform output -raw backend_image_repo)" >> "$GITHUB_OUTPUT"
+          echo "kubeconfig_path=$(terraform output -raw ssm_kubeconfig_path)" >> "$GITHUB_OUTPUT"
+
+      - name: Get kubeconfig from SSM
+        run: |
+          for i in $(seq 1 10); do
+            VALUE=$(aws ssm get-parameter \
+              --name "${{ steps.tf.outputs.kubeconfig_path }}" \
+              --with-decryption --region "${{ env.AWS_REGION }}" \
+              --query "Parameter.Value" --output text)
+            if echo "$VALUE" | grep -q "apiVersion"; then
+              echo "$VALUE" > kubeconfig.yaml
+              echo "KUBECONFIG=$(pwd)/kubeconfig.yaml" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            echo "K3s ainda inicializando, aguardando 30s... ($i/10)"
+            sleep 30
+          done
+          echo "Timeout: kubeconfig indisponível."; exit 1
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Rollout nova imagem
+        run: |
+          APP="${{ steps.tf.outputs.app_name }}"
+          NS="${{ steps.tf.outputs.namespace }}"
+          IMAGE="${{ steps.tf.outputs.repo }}:${{ inputs.image_tag }}"
+          echo "Implantando $IMAGE em deployment/$APP (ns $NS)"
+          kubectl -n "$NS" set image "deployment/$APP" "$APP=$IMAGE"
+          kubectl -n "$NS" rollout status "deployment/$APP" --timeout=180s

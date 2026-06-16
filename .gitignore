@@ -1,0 +1,27 @@
+.terraform/
+.terraform.lock.hcl
+
+# State (o do bootstrap é local — faça backup seguro, não dependa do git)
+*.tfstate
+*.tfstate.*
+terraform.tfstate.d/
+
+# Segredos locais — NUNCA commitar.
+# terraform.tfvars e backend.hcl SÃO commitados (config não-sensível usada no CI).
+secret.auto.tfvars
+*.auto.tfvars
+
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+crash.log
+*.usage.json
+kubeconfig.yaml
+.env
+.direnv/
+
+# Build da Lambda (gerado pelo archive_file)
+infra/build/
+*.zip
