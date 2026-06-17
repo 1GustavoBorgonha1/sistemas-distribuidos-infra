@@ -5,11 +5,11 @@ resource "aws_sesv2_email_identity" "domain" {
 
 # --- Registros DKIM no Cloudflare ---
 resource "cloudflare_record" "ses_dkim" {
-  for_each = toset(aws_sesv2_email_identity.domain.dkim_signing_attributes[0].tokens)
+  for_each = toset(["0", "1", "2"])
 
   zone_id = var.cloudflare_zone_id
-  name    = "${each.value}._domainkey.${var.base_domain}"
-  content = "${each.value}.dkim.amazonses.com"
+  name    = "${aws_sesv2_email_identity.domain.dkim_signing_attributes[0].tokens[each.value]}._domainkey.${var.base_domain}"
+  content = "${aws_sesv2_email_identity.domain.dkim_signing_attributes[0].tokens[each.value]}.dkim.amazonses.com"
   type    = "CNAME"
   proxied = false
   ttl     = 60
