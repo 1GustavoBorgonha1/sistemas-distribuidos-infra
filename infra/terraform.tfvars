@@ -12,8 +12,8 @@ health_check_path      = "/health"
 # Dados in-cluster
 mongo_db_name = "bibliotecasys"
 
-# Domínio
-base_domain = "yan.tec.br"
+# Domínio (subdomínio para evitar conflito de alias no apex)
+base_domain = "sd.yan.tec.br"
 
 # Sensíveis (passar via TF_VAR_*, não commitar):
 #   jwt_secret, cloudflare_api_token, cloudflare_zone_id
