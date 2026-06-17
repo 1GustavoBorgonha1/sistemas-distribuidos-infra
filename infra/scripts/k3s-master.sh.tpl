@@ -17,7 +17,7 @@ PUBLIC_IP=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
   http://169.254.169.254/latest/meta-data/public-ipv4)
 echo "IP público: $PUBLIC_IP"
 
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server \
+curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="${k3s_version}" INSTALL_K3S_EXEC="server \
   --tls-san $PUBLIC_IP \
   --disable traefik \
   --write-kubeconfig-mode 644" sh -

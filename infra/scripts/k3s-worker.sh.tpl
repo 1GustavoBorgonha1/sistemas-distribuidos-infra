@@ -27,6 +27,7 @@ echo "Token K3s obtido."
 
 echo "[3/3] Ingressando no cluster K3s..."
 curl -sfL https://get.k3s.io | \
+  INSTALL_K3S_VERSION="${k3s_version}" \
   K3S_URL="https://$MASTER_IP:6443" \
   K3S_TOKEN="$K3S_TOKEN" \
   sh -

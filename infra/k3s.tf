@@ -61,6 +61,7 @@ resource "aws_instance" "k3s_master" {
     mongo_manifest = local.mongo_manifest
     redis_manifest = local.redis_manifest
     app_manifest   = local.app_manifest
+    k3s_version    = var.k3s_version
   }))
 
   # JWT secret precisa existir antes do master criar o Secret do K8s.
@@ -110,6 +111,7 @@ resource "aws_launch_template" "k3s_worker" {
     workspace         = local.env
     region            = var.aws_region
     master_private_ip = aws_instance.k3s_master.private_ip
+    k3s_version       = var.k3s_version
   }))
 
   tag_specifications {

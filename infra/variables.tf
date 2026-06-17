@@ -161,3 +161,9 @@ variable "cloudflare_zone_id" {
   description = "Zone ID do Cloudflare"
   type        = string
 }
+
+variable "k3s_version" {
+  description = "Versão fixa do K3s (evita a chamada de descoberta ao update.k3s.io)"
+  type        = string
+  default     = "v1.30.5+k3s1"
+}
