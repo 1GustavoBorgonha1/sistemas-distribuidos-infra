@@ -4,7 +4,7 @@ resource "cloudflare_record" "api" {
   name    = local.api_domain
   content = aws_lb.backend.dns_name
   type    = "CNAME"
-  proxied = true
+  proxied = false
   ttl     = 1
 }
 
