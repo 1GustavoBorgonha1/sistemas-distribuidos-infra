@@ -134,7 +134,7 @@ resource "aws_autoscaling_group" "k3s_workers" {
 
   launch_template {
     id      = aws_launch_template.k3s_worker.id
-    version = "$Latest"
+    version = aws_launch_template.k3s_worker.latest_version
   }
 
   instance_refresh {
