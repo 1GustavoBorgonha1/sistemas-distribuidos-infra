@@ -67,7 +67,7 @@ resource "aws_instance" "k3s_master" {
   depends_on = [aws_ssm_parameter.jwt_secret]
 
   root_block_device {
-    volume_size = 20
+    volume_size = 30
     volume_type = "gp3"
   }
 
@@ -101,7 +101,7 @@ resource "aws_launch_template" "k3s_worker" {
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
-      volume_size = 20
+      volume_size = 30
       volume_type = "gp3"
     }
   }
