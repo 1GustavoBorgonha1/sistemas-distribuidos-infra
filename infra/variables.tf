@@ -167,3 +167,9 @@ variable "k3s_version" {
   type        = string
   default     = "v1.30.5+k3s1"
 }
+
+variable "ses_from_email" {
+  description = "Endereço remetente (deve pertencer ao domínio verificado no SES)"
+  type        = string
+  default     = "biblioteca@yan.tec.br"
+}

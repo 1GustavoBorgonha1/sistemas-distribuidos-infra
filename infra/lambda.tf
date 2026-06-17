@@ -5,6 +5,20 @@ data "archive_file" "notify" {
   output_path = "${path.module}/build/notify.zip"
 }
 
+resource "aws_iam_role_policy" "lambda_ses" {
+  name = "${local.name_prefix}-lambda-ses"
+  role = aws_iam_role.lambda_notify.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ses:SendEmail"]
+      Resource = "*"
+    }]
+  })
+}
+
 # --- Role de execução da Lambda ---
 resource "aws_iam_role" "lambda_notify" {
   name = "${local.name_prefix}-lambda-notify-role"
@@ -53,6 +67,12 @@ resource "aws_lambda_function" "notify" {
   source_code_hash = data.archive_file.notify.output_base64sha256
   timeout          = 30
   tags             = local.common_tags
+
+  environment {
+    variables = {
+      SES_FROM = var.ses_from_email
+    }
+  }
 }
 
 # --- Liga a fila à Lambda ---
